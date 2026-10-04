@@ -1,0 +1,62 @@
+---
+description: Regras globais de arquitetura, fluxo, ferramentas MCP (Laravel Boost), qualidade de código (Pint/Larastan) e refatoração segura
+globs: *
+alwaysApply: true
+---
+
+# Diretrizes Gerais
+
+## 1. Postura e Execução
+- Responda de forma direta, técnica e concisa, sem preâmbulos desnecessários.
+- NUNCA instale pacotes Composer ou dependências NPM sem confirmação explícita.
+- NUNCA exponha credenciais, tokens, chaves ou URLs confidenciais no código; utilize sempre variáveis em `.env`.
+- Mantenha `.env.example` atualizado em sincronia sempre que uma nova variável for introduzida.
+
+## 2. Nomenclatura e Convenções
+- Funções, variáveis e métodos: `camelCase`.
+- Classes, interfaces, tipos, DTOs e componentes Vue: `PascalCase`.
+- Tabelas, colunas no banco de dados e rotas nomeadas: `snake_case`.
+
+## 3. Uso do Laravel Boost (MCP Tools)
+- Quando o servidor MCP do **Laravel Boost** estiver ativo:
+  - Utilize as ferramentas de inspeção do Boost para ler schemas reais de tabelas, índices e chaves estrangeiras antes de escrever queries ou migrations.
+  - Consulte a documentação indexada pelo Boost para verificar assinaturas e métodos exatos das dependências instaladas.
+  - Inspecione logs de erro e utilize os runners de contexto para validar hipóteses antes de propor alterações complexas.
+
+## 4. Garantia de Qualidade e Análise Estática Obrigatória
+Antes de concluir qualquer tarefa ou sugerir um commit que crie ou altere arquivos PHP nos diretórios:
+- `app/Http/Controllers/**/*.php`
+- `app/Actions/**/*.php`
+- `app/DTOs/**/*.php` (ou `app/Data/**/*.php`)
+- `app/Models/**/*.php`
+- `app/Http/Requests/**/*.php`
+- `app/Mail/**/*.php` e `app/Notifications/**/*.php`
+- `app/Policies/**/*.php`
+- `app/Services/**/*.php`
+- `tests/**/*.php`
+
+Execute e garanta aprovação nos seguintes passos:
+1. **Formatação de Código (Laravel Pint):**
+   - Execute o Pint no(s) arquivo(s) modificado(s):
+     ```bash
+     ./vendor/bin/pint path/para/o/ArquivoModificado.php
+     ```
+2. **Análise Estática de Tipos (Larastan / PHPStan):**
+   - Execute a análise estática no(s) arquivo(s) modificado(s) garantindo zero erros de tipagem:
+     ```bash
+     ./vendor/bin/phpstan analyse path/para/o/ArquivoModificado.php
+     ```
+   - Se o Larastan reportar inconsistências de tipagem, métodos inexistentes ou risco de `null`, corrija o código imediatamente antes de finalizar a resposta.
+
+## 5. Modo de Refatoração Segura (Brownfield)
+- NUNCA altere arquivos fora do escopo explícito da tarefa solicitada.
+- Ao refatorar código legado, modifique apenas a função/classe alvo, preservando compatibilidade pública.
+- Mensagens de commit: siga a convenção Conventional Commits (`feat:`, `fix:`, `refactor:`, `test:`, `chore:`).
+
+## 6. Comandos Padrão do Projeto
+- Verificação Pint (projeto completo): `./vendor/bin/pint --test`
+- Verificação Larastan (projeto completo): `./vendor/bin/phpstan analyse`
+- Testes Backend (Pest): `./vendor/bin/pest`
+- Testes Frontend (Vitest): `npx vitest run`
+- Verificação de Tipos TypeScript: `npx vue-tsc --noEmit`
+- Build do Frontend: `npm run build`

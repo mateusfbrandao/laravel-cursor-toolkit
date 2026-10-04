@@ -1,0 +1,26 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+        - bootstrap/app.php
+        - database/
+        - routes/
+        - tests/
+
+    # Nível 8 de checagem estrita (máxima segurança de tipos no Laravel)
+    level: 8
+
+    # Suporte para modelos, relacionamentos dinâmicos e scopes do Eloquent
+    checkModelProperties: true
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+
+    # Exceções controladas de caminhos que possuem flexibilidade estrutural do framework
+    excludePaths:
+        - database/migrations/*
+
+    # Ignora avisos pontuais onde o PHPStan ainda não infere macros customizadas do Laravel
+    ignoreErrors:
+        - '#PHPDoc tag @var does not specify type#'

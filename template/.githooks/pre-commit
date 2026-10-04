@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# Interrompe o script se algum comando falhar
+set -e
+
+# Pega apenas arquivos PHP adicionados (A), copiados (C) ou modificados (M) no stage
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.php$' || true)
+
+if [ -z "$STAGED_FILES" ]; then
+    exit 0
+fi
+
+# Filtra apenas os arquivos que estão dentro dos diretórios monitorados
+TARGET_PATTERN="^(app/(Http/Controllers|Actions|DTOs|Data|Models|Http/Requests|Mail|Notifications|Policies|Services)|tests)/"
+FILES_TO_CHECK=""
+
+for FILE in $STAGED_FILES; do
+    if echo "$FILE" | grep -Eq "$TARGET_PATTERN"; then
+        FILES_TO_CHECK="$FILES_TO_CHECK $FILE"
+    fi
+done
+
+if [ -z "$FILES_TO_CHECK" ]; then
+    exit 0
+fi
+
+echo "🔍 Verificando qualidade de código nos arquivos em stage..."
+
+# 1. Executa o Laravel Pint
+echo "🎨 Executando Laravel Pint..."
+./vendor/bin/pint $FILES_TO_CHECK
+
+# Adiciona de volta ao stage os arquivos que o Pint formatou
+for FILE in $FILES_TO_CHECK; do
+    git add "$FILE"
+done
+
+# 2. Executa o Larastan (PHPStan)
+echo "🔬 Executando Larastan (PHPStan)..."
+./vendor/bin/phpstan analyse $FILES_TO_CHECK --no-progress
+
+echo "✅ Tudo limpo! Prosseguindo com o commit."
+exit 0

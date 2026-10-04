@@ -1,0 +1,45 @@
+---
+description: Padrões de Frontend com Vue 3, TypeScript, Inertia.js, TailwindCSS, shadcn-vue e UI Craft (Impeccable Standard)
+globs: resources/js/**/*.{vue,ts,d.ts}, resources/css/**/*.css
+alwaysApply: false
+---
+
+# Regras de Frontend
+
+## 1. Vue 3 & Composition API
+- Use estritamente `<script setup lang="ts">`.
+- Declare e tipe explicitamente as props via `defineProps<{ ... }>()` com interfaces dedicadas.
+- Evite componentes monolíticos: extraia lógicas e blocos repetitivos em subcomponentes atômicos ou composables reutilizáveis (`useTableFilters`, `useModalState`).
+- Garanta tratamento visual para:
+  - Estado de envio/processamento (`form.processing`).
+  - Feedback de erros de validação (`form.errors.*`).
+  - Telas e listas vazias (*empty states* informativos e visuais).
+
+## 2. Roteamento com Laravel Wayfinder (Sem Ziggy)
+- NUNCA use o helper global `route('...')` nem URLs hardcoded.
+- Importe funções de rota tipadas geradas pelo Wayfinder a partir de `@/routes/*`.
+  - Importação: `import { index, show, store } from '@/routes/employees';`
+  - Links: `<Link :href="index().url">`
+  - Submissão de formulário: `form.post(store().url)`
+  - Parâmetros obrigatórios: `show({ employee: id }).url`
+
+## 3. Design System & Componentes de UI (shadcn-vue + TailwindCSS)
+- **Catálogo de Componentes:** Utilize os componentes localizados em `@/components/ui/*` (ex.: `Button`, `Input`, `Dialog`, `Table`, `Badge`, `Card`, `Select`, `DropdownMenu`).
+- **Prevenção de Duplicação:** NUNCA crie elementos primitivos de interface com tags HTML puras (`<button>`, `<input>`, `<select>`) se houver um componente correspondente em `@/components/ui/`.
+- **Instalação Sob Demanda:** Se uma interface exigir um componente do catálogo shadcn-vue ainda ausente no projeto (ex.: `Sheet`, `Tabs`, `Popover`), utilize a CLI correspondente (`npx shadcn-vue@latest add <component>`) ou consulte o servidor MCP para gerar a estrutura baseada em Radix Vue.
+- **Sobrescrita de Classes:** Para junção dinâmica ou customização pontual de classes Tailwind, utilize exclusivamente o utilitário `cn(...)` importado de `@/lib/utils`.
+- **Estilização Geral:** Utilize apenas classes utilitárias do TailwindCSS. NUNCA crie blocos `<style>` com seletores CSS customizados manuais.
+- **Ícones:** Use exclusivamente a biblioteca `lucide-vue-next` (ex.: `import { Plus, Trash2, ArrowRight } from 'lucide-vue-next';`).
+
+## 4. Estado Compartilhado e Formulários (Inertia.js)
+- **Dados Globais:** Consuma variáveis compartilhadas e contexto de autenticação através de `usePage<PageProps>()` tipado via `@/types`.
+- **Null Safety:** Trate explicitamente a possibilidade de `auth.user` ser `null` (em rotas públicas, telas de autenticação ou visitantes).
+- **Formulários:** Gerencie submissões e estados reativos exclusivamente através do `useForm` do `@inertiajs/vue3`.
+- **Performance de Recarregamento:** Ao filtrar tabelas ou buscar dados com debounce, utilize `router.get(..., {}, { preserveState: true, preserveScroll: true, only: ['dadosFiltrados'] })`.
+
+## 5. UI Craft & Design Quality (Padrão Impeccable)
+- **Escala e Ritmo Vertical:** Respeite rigorosamente a escala de espaçamento do Tailwind (múltiplos de 4: `p-4`, `gap-6`, `space-y-4`). NUNCA utilize valores arbitrários mágicos (ex.: `p-[13px]`, `top-[17px]`).
+- **Estados de Interação:** Todo elemento interativo (botões, links, cards clicáveis) deve conter estados visíveis e polidos para `:hover`, `:focus-visible` e `:active`.
+- **Micro-feedbacks em Ações Assíncronas:** Ao submeter formulários, combine a desabilitação do botão com um ícone animado de carregamento (`Loader2` com `animate-spin` da `lucide-vue-next`).
+- **Acessibilidade (A11y):** Garanta atributos `aria-label` para botões contendo apenas ícones e certifique-se de que modais, menus e selects sejam plenamente navegáveis via teclado (Radix Vue).
+- **Alinhamento Numérico e Truncamento:** Use `tabular-nums font-mono` para dados tabulares numéricos, datas e valores financeiros. Em textos que possam estourar containers, aplique `truncate` com tooltip explicativo.

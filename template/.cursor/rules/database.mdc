@@ -1,0 +1,20 @@
+---
+description: Padrões de banco de dados, migrations, models, casts e queries Eloquent
+globs: database/**/*.{php,sql}, app/Models/**/*.php
+alwaysApply: false
+---
+
+# Regras de Banco de Dados
+
+## 1. Models e Eloquent Moderno
+- **Eloquent Casts:** Defina mutações de atributos usando o método `casts(): array` nos Models, em vez da propriedade protegida de array (`protected $casts = [...]`)[cite: 1].
+- **Escopos Locais:** Encapsule queries complexas ou repetitivas em métodos de escopo no próprio Model (ex.: `scopeActive()`, `scopePending()`)[cite: 1].
+- **Queries Expressivas:** Prefira métodos nativos do Eloquent/Query Builder[cite: 1]. Evite queries SQL brutas (`DB::raw`) a menos que estritamente necessário para desempenho crítico[cite: 1].
+- **Prevenção de N+1:** Sempre aplique Eager Loading (`with(['relacao'])`) ao carregar dados correlacionados para views ou listagens.
+- **Model Factories:** Toda entidade deve possuir uma Model Factory completa para geração de dados de teste.
+
+## 2. Migrations e Integridade
+- NUNCA modifique migrations que já foram executadas ou versionadas; crie migrations incrementais.
+- **Transações:** Qualquer operação que altere múltiplos registros correlacionados ou mais de uma tabela DEVE rodar encapsulada em `DB::transaction()`[cite: 1].
+- Defina chaves estrangeiras com constraints explícitas (`cascadeOnDelete()`, `nullOnDelete()`, etc.).
+- Nomes de tabelas e colunas sempre em `snake_case`.

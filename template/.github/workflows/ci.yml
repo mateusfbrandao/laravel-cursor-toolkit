@@ -1,0 +1,89 @@
+name: CI & Quality Gate
+
+on:
+push:
+branches: \[main, master, develop\]
+pull_request:
+branches: \[main, master, develop\]
+
+concurrency:
+group: ${{ github.workflow }}-${{ github.ref }}
+cancel-in-progress: true
+
+jobs:
+backend-quality:
+name: Backend (Pint, Larastan & Pest)
+runs-on: ubuntu-latest
+timeout-minutes: 10
+
+```
+steps:
+  - name: Checkout do código
+    uses: actions/checkout@v4
+
+  - name: Setup do ambiente PHP
+    uses: shivammathur/setup-php@v2
+    with:
+      php-version: '8.3'
+      extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, bcmath, redis
+      coverage: pcov
+
+  - name: Obter diretório de cache do Composer
+    id: composer-cache
+    run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+  - name: Cache de dependências do Composer
+    uses: actions/cache@v4
+    with:
+      path: ${{ steps.composer-cache.outputs.dir }}
+      key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+      restore-keys: ${{ runner.os }}-composer-
+
+  - name: Instalar dependências PHP
+    run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+  - name: Preparar ambiente Laravel
+    run: |
+      cp .env.example .env.ci || true
+      php artisan key:generate --env=testing
+
+  - name: 1. Validação de Estilo de Código (Laravel Pint)
+    run: ./vendor/bin/pint --test
+
+  - name: 2. Análise Estática de Tipos (Larastan / PHPStan)
+    run: ./vendor/bin/phpstan analyse --error-format=github
+
+  - name: 3. Execução da Suíte de Testes (Pest PHP)
+    env:
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ':memory:'
+    run: ./vendor/bin/pest --parallel --compact
+
+```
+
+frontend-quality:
+name: Frontend (Typecheck & Vitest)
+runs-on: ubuntu-latest
+timeout-minutes: 8
+
+```
+steps:
+  - name: Checkout do código
+    uses: actions/checkout@v4
+
+  - name: Setup do Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: 20
+      cache: 'npm'
+
+  - name: Instalar dependências Node
+    run: npm ci
+
+  - name: 1. Verificação de Tipos TypeScript (vue-tsc)
+    run: npx vue-tsc --noEmit
+
+  - name: 2. Execução dos Testes Unitários de Frontend (Vitest)
+    run: npx vitest run --reporter=verbose
+
+```

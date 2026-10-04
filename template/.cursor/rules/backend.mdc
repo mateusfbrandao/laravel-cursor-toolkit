@@ -1,0 +1,35 @@
+---
+description: Padrões de arquitetura, controllers, actions, DTOs e PHP moderno (Laravel 12+, PHP 8.5+)
+globs: app/**/*.php, routes/**/*.php, bootstrap/**/*.php
+alwaysApply: false
+---
+
+# Regras de Backend
+
+## 1. Padrões de Código e PHP Moderno
+- Todo arquivo PHP DEVE iniciar com `declare(strict_types=1);` no topo[cite: 1].
+- Use tipagem estrita em todas as propriedades, parâmetros e retornos de métodos.
+- Utilize **Constructor Property Promotion** para injeção de dependências e inicialização de DTOs/classes[cite: 1].
+- Prefira arrow functions (`fn() => ...`) para closures simples de linha única[cite: 1].
+
+## 2. Roteamento e Controllers
+- **Rotas:** Use estritamente a sintaxe de tupla de array para referenciar controllers: `Route::get('/users', [UserController::class, 'index']);`[cite: 1]. Nunca utilize strings[cite: 1].
+- **Slim Controllers:** Controllers atuam exclusivamente como maestros[cite: 1]. Sua única responsabilidade é receber a Request, mapear para o DTO correspondente, invocar a Action e retornar a resposta (Resource ou Inertia)[cite: 1].
+- **Validação:** Validação e autorização HTTP pertencem exclusivamente a **Form Requests** dedicados (`app/Http/Requests/*`)[cite: 1]. Nunca use validação inline (`$request->validate()`) no controller[cite: 1].
+
+## 3. Padrão Action / DTO
+- **DTOs (Data Transfer Objects):** Classes imutáveis (`readonly class`) com propriedades tipadas, usadas para transportar dados validados do controller para o domínio da aplicação[cite: 1].
+- **Actions:**
+  - Classes de responsabilidade única focadas em executar apenas uma tarefa de negócio (ex.: `RegisterUserAction`)[cite: 1].
+  - Acionadas pelo método público `execute()` ou `__invoke()`[cite: 1].
+  - **Agnósticas de HTTP:** NUNCA utilize helpers como `request()`, `session()` ou métodos de redirecionamento dentro de Actions[cite: 1].
+
+## 4. Autorização e Segurança
+- NUNCA execute mutações sem checar autorização via Laravel Policies (`authorize('update', $model)`).
+- Em Form Requests, utilize o método `authorize(): bool` delegando para a Policy correspondente: `$this->user()->can('update', $this->route('employee'))`.
+- NUNCA valide perfis e permissões com strings soltas dentro do Controller (`if ($user->role === '...')`).
+
+## 5. Exceções e Respostas de Erro
+- Deixe o manipulador global de exceções do Laravel gerenciar erros não previstos.
+- NUNCA use blocos `try/catch` vazios ou genéricos nos Controllers apenas para capturar `\Exception`.
+- Para regras de negócio violadas dentro de Actions, lance **Domain Exceptions** customizadas (ex.: `CannotDismissEmployeeWithActiveLoansException`) e mapeie a resposta no bootstrap/handler.

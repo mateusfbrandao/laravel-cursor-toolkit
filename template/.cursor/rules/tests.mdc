@@ -1,0 +1,15 @@
+---
+description: Diretrizes de testes automatizados com Pest PHP (Backend) e Vitest + Vue Test Utils (Frontend)
+globs: tests/**/*.{php,js,ts}, resources/js/**/*.{test,spec}.{js,ts}, **/*Test.php
+alwaysApply: false
+---
+
+# Padrões de Testes
+
+## 1. Backend: Pest PHP (`tests/Feature` e `tests/Unit`)
+- Use exclusivamente a API funcional do **Pest** (`test()` ou `it()`). NUNCA use classes PHPUnit clássicas.
+- Estruture todo teste no padrão **AAA (Arrange, Act, Assert)** com espaçamento nítido entre os blocos.
+- Use a trait `RefreshDatabase` para garantir banco de dados limpo a cada execução[cite: 2].
+- Use expectativas fluentes e expressivas (`expect()->...`)[cite: 2]:
+  ```php
+  expect($employee->status)->toBe(Status::Active);
